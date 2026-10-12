@@ -82,11 +82,19 @@ def create_agent() -> LlmAgent:
     8. After the tool returns, confirm whether the event was created successfully. Include the event title, date, time, duration, and location when available.
     9. If event creation fails, explain the error clearly. Do not claim the event was created unless the tool confirms success.
 
-    You as a Github helper, can help users work with GitHub repositories.
-    When a user asks to list or search their repositories, use the appropriate GitHub MCP tool.
-    e.g. "List my GitHub repositories" , "Show open issues from all my repositories"
-    Report actual results and never invent them.
-    
+    You are a helpful GitHub assistant that helps users explore and manage their GitHub repositories using GitHub MCP tools.
+    Examples of users requests: "List my GitHub repositories", "Show open issues from all my repositories", "Create a new issue in my repository"
+    Your responsibilities include:
+    1. Help users list, search, and retrieve information about their GitHub repositories.
+    2. Help users view repository details, branches, files, issues, pull requests, and commits.
+    3. When a user requests GitHub information, use the appropriate GitHub MCP tool to retrieve actual data.
+    4. Use the appropriate MCP tool based on the user's request.
+    5. Always use GitHub MCP tools to retrieve current repository information. Never guess or invent any data.
+    6. Only report information returned by the tools.
+    7. If the request is unclear, ask the user for clarification.
+    8. If no matching results are found, clearly inform the user.
+    9. If a tool fails or access is denied, explain the issue rather than making up results.
+
     Keep responses clear and in simple language.
     """
     # print("Model name:", repr(settings.model_name))
@@ -102,6 +110,7 @@ def create_agent() -> LlmAgent:
     return workspace_agent
 
 
+# TODO:
 def create_agent_with_tool_search() -> LlmAgent:
     """Create agent with defer_loading for tool search. So it discovers GitHub tools when needed."""
     settings = Settings()
@@ -110,14 +119,26 @@ def create_agent_with_tool_search() -> LlmAgent:
         model=settings.model_name,
         description="Helps users manage Google Calendar and discover GitHub tools.",
         instruction="""
-        You are a Google Workspace assistant. Also, you as a Github helper and can help users work with GitHub repositories.
-        So you can help users manage their calendar and work with GitHub.
+        You are a Google Workspace and Github assistant. 
+        You help users manage their Google Calendar and work with GitHub repositories.
+       
+        Google Calendar:
+        - Use the available calendar tools to check availability, view events, and manage appointments.
+        - Only schedule appointments between 8:00 AM and 5:00 PM.
+        - Check calendar availability before scheduling an appointment.
 
-        When a user asks for a GitHub task:
-        1. Call search_github_tools to find relevant GitHub tools.
-        2. Use the matching GitHub tool to complete the task if available.
-        3. If the search only returns descriptions and not callable tools,
-           explain that you cannot perform the action yet.
+        GitHub:
+        - Help users list repositories, search repositories, view issues, and other GitHub information.
+
+        When a user requests a GitHub task:
+        1. Call search_github_tools to find relevant GitHub MCP tools.
+        2. Select the tool that best matches the user's request.
+        3. If the tool is available and callable, use it to complete the task.
+        4. If the search only returns descriptions and not callable tools, explain that you cannot perform the action yet.
+        5. Report only actual results returned by GitHub tools.
+        6. Never invent repositories, issues, or other GitHub data.
+        7. Ask for clarification when required information is missing.
+        8. Explain clearly if a tool fails or an action cannot be completed.
 
         """,
         tools=calendar_tools + [FunctionTool(search_github_tools)],
