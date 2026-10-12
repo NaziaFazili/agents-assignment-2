@@ -6,9 +6,10 @@ Students should not need to modify this file.
 """
 
 import os
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
+
 from dotenv import load_dotenv
 
 

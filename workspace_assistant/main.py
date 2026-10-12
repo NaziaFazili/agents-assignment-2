@@ -9,21 +9,23 @@ Usage:
 
 import argparse
 import asyncio
+
+from agent import create_agent
+from dotenv import load_dotenv
 from google.adk.runners import InMemoryRunner
 from google.genai import types as genai_types
 from rich.console import Console
-from rich.prompt import Prompt
 from rich.markdown import Markdown
+from rich.prompt import Prompt
 
-from agent import create_agent
-
+load_dotenv()
 console = Console()
 
 USER_ID = "user"
 SESSION_ID = "session"
 
 
-def run_query(runner, query: str) -> str:
+async def run_query(runner, query: str) -> str:
     """Execute a query using the InMemoryRunner and return the response."""
     try:
         user_message = genai_types.Content(
@@ -31,7 +33,7 @@ def run_query(runner, query: str) -> str:
             parts=[genai_types.Part(text=query)],
         )
         response_text = ""
-        for event in runner.run(
+        async for event in runner.run_async(
             user_id=USER_ID,
             session_id=SESSION_ID,
             new_message=user_message,
@@ -45,27 +47,27 @@ def run_query(runner, query: str) -> str:
         return f"Error: {str(e)}"
 
 
-def interactive_mode(runner):
+async def interactive_mode(runner):
     """Run in interactive mode."""
     console.print("[bold green]Google Workspace Assistant[/bold green]")
     console.print("Type 'quit' to exit.\n")
 
     while True:
         query = Prompt.ask("[cyan]You[/cyan]")
-        if query.lower() in ('quit', 'exit', 'q'):
+        if query.lower() in ("quit", "exit", "q"):
             break
         if not query.strip():
             continue
 
         with console.status("Thinking..."):
-            response = run_query(runner, query)
+            response = await run_query(runner, query)
 
         console.print("\n[green]Assistant[/green]")
         console.print(Markdown(response))
         console.print()
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(description="Google Workspace Assistant")
     parser.add_argument("query", nargs="?", help="Query to send")
     parser.add_argument("--interactive", "-i", action="store_true")
@@ -74,14 +76,19 @@ def main():
     agent = create_agent()
     runner = InMemoryRunner(agent=agent)
 
+    await runner.session_service.create_session(
+        app_name=runner.app_name,
+        user_id=USER_ID,
+        session_id=SESSION_ID,
+    )
     if args.interactive:
-        interactive_mode(runner)
+        await interactive_mode(runner)
     elif args.query:
-        response = run_query(runner, args.query)
+        response = await run_query(runner, args.query)
         console.print(Markdown(response))
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

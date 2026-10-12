@@ -11,12 +11,7 @@ import inspect
 
 def check_tool_requirements(tools: list, option: str) -> dict:
     """Check if tools meet basic requirements."""
-    results = {
-        "option": option,
-        "checks": [],
-        "passed": 0,
-        "total": 0
-    }
+    results = {"option": option, "checks": [], "passed": 0, "total": 0}
 
     # Check 1: At least 3 tools
     results["total"] += 1
@@ -46,7 +41,17 @@ def check_tool_requirements(tools: list, option: str) -> dict:
 
     # Check 4: Tools use action verbs
     results["total"] += 1
-    verbs = ["list", "get", "find", "create", "check", "update", "delete", "complete", "reschedule"]
+    verbs = [
+        "list",
+        "get",
+        "find",
+        "create",
+        "check",
+        "update",
+        "delete",
+        "complete",
+        "reschedule",
+    ]
     with_verbs = sum(1 for t in tools if any(t.__name__.startswith(v) for v in verbs))
     if with_verbs == len(tools) and len(tools) > 0:
         results["passed"] += 1
@@ -75,16 +80,13 @@ def check_tool_requirements(tools: list, option: str) -> dict:
 
 def check_agent():
     """Check if agent is properly configured."""
-    results = {
-        "checks": [],
-        "passed": 0,
-        "total": 0
-    }
+    results = {"checks": [], "passed": 0, "total": 0}
 
     # Check 1: Agent can be created
     results["total"] += 1
     try:
         from agent import create_agent
+
         agent = create_agent()
         results["passed"] += 1
         results["checks"].append("✓ create_agent() works")
@@ -97,7 +99,7 @@ def check_agent():
 
     # Check 2: Agent has system instruction
     results["total"] += 1
-    instr = getattr(agent, 'instruction', '') or ''
+    instr = getattr(agent, "instruction", "") or ""
     if len(instr) > 100:
         results["passed"] += 1
         results["checks"].append(f"✓ System instruction defined ({len(instr)} chars)")
@@ -106,7 +108,7 @@ def check_agent():
 
     # Check 3: Agent has tools
     results["total"] += 1
-    tools = getattr(agent, 'tools', []) or []
+    tools = getattr(agent, "tools", []) or []
     if len(tools) >= 3:
         results["passed"] += 1
         results["checks"].append(f"✓ Agent has {len(tools)} tools")
@@ -127,16 +129,18 @@ def main():
 
     try:
         from tools.calendar_tools import calendar_tools
+
         if len(calendar_tools) > 0:
             option = "calendar"
             tools = calendar_tools
             print(f"\nDetected: Option A (Calendar)")
-    except ImportError:
-        pass
+    except ImportError as e:
+        print("Calendar import failed:", e)
 
     if not option:
         try:
             from tools.tasks_tools import tasks_tools
+
             if len(tasks_tools) > 0:
                 option = "tasks"
                 tools = tasks_tools
