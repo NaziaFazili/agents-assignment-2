@@ -19,9 +19,6 @@ from .auth import get_calendar_service
 # and relevant data. Wrapping with FunctionTool(func=my_function) is optional
 # and only needed when you want explicit control over the tool.
 
-timezone_name: str = "UTC"
-# calendar_tools = []
-
 
 def list_upcoming_events(max_results: int = 20) -> dict:
     """List upcoming calendar events from primary calendar
@@ -107,6 +104,7 @@ def find_available_slots(
             "status": "error",
             "date": day,
             "free_slots": [],
+            "timezone": "",
             "message": f"Failed to initialize calendar service: {str(e)}",
         }
 
@@ -184,6 +182,7 @@ def find_available_slots(
             "status": "success",
             "date": day,
             "free_slots": free_slots,
+            "timezone": timezone_name,
             "message": "Free slots retrieved successfully.",
         }
     except Exception as e:
@@ -191,6 +190,7 @@ def find_available_slots(
             "status": "error",
             "date": day,
             "free_slots": [],
+            "timezone": "",
             "message": f"An error occurred while fetching free slots: {str(e)}",
         }
 
@@ -260,6 +260,7 @@ def create_event(
             }
 
         # Convert the available times into datetime objects
+        timezone_name = availability.get("timezone", "UTC")
         tz = ZoneInfo(timezone_name)
         duration = timedelta(minutes=duration_minutes)
 
@@ -286,7 +287,7 @@ def create_event(
             if appointment_end <= slot_end:
                 selected_start = slot_start
                 selected_end = appointment_end
-            break
+                break
 
         if selected_start is None:
             return {

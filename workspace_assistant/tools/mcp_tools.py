@@ -30,7 +30,8 @@ MCP_CONFIG_PATH = Path(__file__).parent.parent / "config" / "mcp_servers.json"
 def get_github_mcp_toolset() -> McpToolset:
     token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
     if not token:
-        raise ValueError("GITHUB_PERSONAL_ACCESS_TOKEN not set in .env")
+        print("GitHub token missing. Skipping GitHub MCP tool.")
+        return None
 
     server_params = StdioServerParameters(
         command="npx",
@@ -186,8 +187,8 @@ def get_github_mcp_toolset_deferred() -> McpToolset:
     )
 
 
-mcp_tools = [
-    # Add your McpToolset here after implementing one of the options above
-    get_github_mcp_toolset()
-    # Example: get_github_mcp_toolset_from_config()
-]
+mcp_tools = []
+github_toolset = get_github_mcp_toolset()
+
+if github_toolset is not None:
+    mcp_tools.append(github_toolset)

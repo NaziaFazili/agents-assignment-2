@@ -1,5 +1,6 @@
 # Credentials (NEVER commit these)
 config/credentials/*.json
+workspace_assistant/.adk/
 
 # Environment
 .env
